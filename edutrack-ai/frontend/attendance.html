@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EduTrack AI Attendance Tracker - Track and evaluate student class presence, late arrivals, and absences.">
+  <title>Attendance - EduTrack AI</title>
+  
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/3d.css">
+  
+  <style>
+    /* Summary Card Widgets */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    
+    .summary-card {
+      padding: 24px;
+      text-align: center;
+    }
+    
+    .summary-val {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    
+    .val-green { color: var(--success); }
+    .val-red { color: var(--danger); }
+    .val-yellow { color: var(--warning); }
+
+    /* Calendar Grid Architecture */
+    .calendar-container {
+      margin-bottom: 32px;
+    }
+    
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .calendar-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+    
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+    
+    .calendar-day {
+      min-height: 80px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: var(--transition);
+    }
+    
+    .calendar-day:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    
+    .day-num {
+      font-weight: 600;
+      font-size: 0.95rem;
+      align-self: flex-end;
+    }
+    
+    .day-status {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 6px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    
+    /* Calendar Colors matching specs */
+    .day-present {
+      background: rgba(0, 214, 143, 0.12) !important;
+      border-color: rgba(0, 214, 143, 0.3) !important;
+    }
+    .day-present .day-status {
+      background: rgba(0, 214, 143, 0.2);
+      color: var(--success);
+    }
+    
+    .day-absent {
+      background: rgba(255, 77, 109, 0.12) !important;
+      border-color: rgba(255, 77, 109, 0.3) !important;
+    }
+    .day-absent .day-status {
+      background: rgba(255, 77, 109, 0.2);
+      color: var(--danger);
+    }
+    
+    .day-late {
+      background: rgba(255, 170, 0, 0.12) !important;
+      border-color: rgba(255, 170, 0, 0.3) !important;
+    }
+    .day-late .day-status {
+      background: rgba(255, 170, 0, 0.2);
+      color: var(--warning);
+    }
+    
+    .day-empty {
+      background: transparent !important;
+      border: 1px dashed rgba(255, 255, 255, 0.03) !important;
+      pointer-events: none;
+    }
+    
+    .day-inactive {
+      opacity: 0.35;
+    }
+
+    .calendar-legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Canvas -->
+  <canvas id="bg"></canvas>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar-nav">
+      <div class="sidebar-logo">EduTrack AI</div>
+      <ul class="sidebar-menu">
+        <li class="menu-item">
+          <a href="dashboard.html">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="grades.html">
+            <span class="icon">📝</span>
+            <span>Grades</span>
+          </a>
+        </li>
+        <li class="menu-item active">
+          <a href="attendance.html">
+            <span class="icon">📅</span>
+            <span>Attendance</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="admin.html">
+            <span class="icon">⚙️</span>
+            <span>Admin Panel</span>
+          </a>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <div class="logout-btn" id="logout-sidebar-btn">
+          <span class="icon">🔓</span>
+          <span>Logout</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <button class="mobile-nav-toggle" id="mobile-toggle" aria-label="Toggle Navigation">☰</button>
+
+      <!-- Header Section -->
+      <header class="header-bar">
+        <div class="header-title">
+          <h1>Attendance Tracker</h1>
+          <p>MONITOR AND REGISTER STUDENT CLASS SESSIONS</p>
+        </div>
+        <div class="header-profile" style="min-width: 250px;">
+          <select id="student-selector" class="form-control" style="border-color: var(--accent-cyan);">
+            <option value="">-- Choose Student --</option>
+            <!-- Loaded via JS -->
+          </select>
+        </div>
+      </header>
+
+      <!-- Summary Stat Cards -->
+      <div class="summary-grid">
+        <div class="glass-card summary-card card-3d">
+          <div style="font-weight: 600; color: var(--text-secondary);">Present Days</div>
+          <div class="summary-val val-green" id="summary-present-days">0</div>
+        </div>
+        <div class="glass-card summary-card card-3d">
+          <div style="font-weight: 600; color: var(--text-secondary);">Absent Days</div>
+          <div class="summary-val val-red" id="summary-absent-days">0</div>
+        </div>
+        <div class="glass-card summary-card card-3d">
+          <div style="font-weight: 600; color: var(--text-secondary);">Late Arrivals</div>
+          <div class="summary-val val-yellow" id="summary-late-days">0</div>
+        </div>
+      </div>
+
+      <!-- Calendar Container -->
+      <div class="glass-card calendar-container card-3d">
+        <div class="calendar-header">
+          <h2 id="calendar-month-year" style="font-size: 1.4rem; font-weight: 700;">May 2026</h2>
+          <div class="calendar-controls">
+            <select id="month-select" class="form-control" style="width: 130px; padding: 8px 12px;"></select>
+            <select id="year-select" class="form-control" style="width: 100px; padding: 8px 12px;"></select>
+          </div>
+        </div>
+
+        <div class="calendar-weekdays">
+          <div>Sun</div>
+          <div>Mon</div>
+          <div>Tue</div>
+          <div>Wed</div>
+          <div>Thu</div>
+          <div>Fri</div>
+          <div>Sat</div>
+        </div>
+
+        <div class="calendar-grid" id="calendar-days-grid">
+          <!-- Calendar Days dynamically injected via JS -->
+        </div>
+
+        <div class="calendar-legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background: rgba(0, 214, 143, 0.2); border: 1px solid var(--success);"></div>
+            <span>Present</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: rgba(255, 77, 109, 0.2); border: 1px solid var(--danger);"></div>
+            <span>Absent</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: rgba(255, 170, 0, 0.2); border: 1px solid var(--warning);"></div>
+            <span>Late</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color);"></div>
+            <span>No Session</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attendance Listing Table -->
+      <div class="glass-card card-3d">
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 20px;">Detailed Attendance Records</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Course Name</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="attendance-table-body">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-secondary);">Select a student in the header dropdown to filter historical grids.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Overlay -->
+  <div class="toast-container" id="toast-overlay"></div>
+
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/three-bg.js"></script>
+
+  <!-- Network client & Auth helper -->
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+
+  <script>
+    checkAuth();
+
+    // Toast emitter
+    const showToast = (message, type = 'success') => {
+      const overlay = document.getElementById('toast-overlay');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      overlay.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s reverse forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    };
+
+    // State parameters
+    let students = [];
+    let courses = [];
+    let selectedStudentId = null;
+    let studentAttendance = [];
+    
+    // Calendar parameters
+    let currentMonth = new Date().getMonth(); // 0-11
+    let currentYear = new Date().getFullYear();
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Sidebar logout action
+      document.getElementById('logout-sidebar-btn').addEventListener('click', () => logoutUser());
+
+      // 2. Mobile nav burger toggle
+      const mobileToggle = document.getElementById('mobile-toggle');
+      const sidebar = document.getElementById('sidebar-nav');
+      mobileToggle.addEventListener('click', () => sidebar.classList.toggle('active'));
+
+      // 3. Setup Month/Year controls
+      setupCalendarControls();
+
+      // 4. Fetch students registry to populate dropdown
+      await loadStudentSelector();
+
+      // 5. Setup Select changes
+      document.getElementById('student-selector').addEventListener('change', async (e) => {
+        selectedStudentId = e.target.value ? parseInt(e.target.value) : null;
+        await refreshAttendanceData();
+      });
+
+      document.getElementById('month-select').addEventListener('change', (e) => {
+        currentMonth = parseInt(e.target.value);
+        renderCalendar();
+      });
+
+      document.getElementById('year-select').addEventListener('change', (e) => {
+        currentYear = parseInt(e.target.value);
+        renderCalendar();
+      });
+    });
+
+    const setupCalendarControls = () => {
+      const monthSelect = document.getElementById('month-select');
+      const yearSelect = document.getElementById('year-select');
+
+      // Populate Month select
+      monthNames.forEach((name, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = name;
+        if (idx === currentMonth) opt.selected = true;
+        monthSelect.appendChild(opt);
+      });
+
+      // Populate Year select (-3 years to +1 year)
+      const baseYear = new Date().getFullYear();
+      for (let y = baseYear - 3; y <= baseYear + 1; y++) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        if (y === currentYear) opt.selected = true;
+        yearSelect.appendChild(opt);
+      }
+    };
+
+    const loadStudentSelector = async () => {
+      try {
+        students = await getStudents();
+        courses = await getCourses();
+        const selector = document.getElementById('student-selector');
+        
+        students.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = `${s.name} (${s.grade_level})`;
+          selector.appendChild(opt);
+        });
+
+        // Set default to first student if exist
+        if (students.length > 0) {
+          selector.value = students[0].id;
+          selectedStudentId = students[0].id;
+          await refreshAttendanceData();
+        }
+      } catch (err) {
+        showToast("Error querying database: " + err.message, "error");
+      }
+    };
+
+    // Pull student logs and update UI elements
+    const refreshAttendanceData = async () => {
+      if (!selectedStudentId) {
+        studentAttendance = [];
+        resetSummaryCards();
+        renderCalendar();
+        renderTableRecords();
+        return;
+      }
+
+      try {
+        studentAttendance = await getStudentAttendance(selectedStudentId);
+        
+        // Recalculate summary totals
+        updateSummaryStats();
+        
+        // Redraw views
+        renderCalendar();
+        renderTableRecords();
+      } catch (err) {
+        showToast("Failed to fetch student attendance logs: " + err.message, "error");
+      }
+    };
+
+    const updateSummaryStats = () => {
+      let present = 0;
+      let absent = 0;
+      let late = 0;
+
+      studentAttendance.forEach(rec => {
+        const d = new Date(rec.date);
+        // Filter by currently selected month and year
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+          if (rec.status === 'present') present++;
+          else if (rec.status === 'absent') absent++;
+          else if (rec.status === 'late') late++;
+        }
+      });
+
+      document.getElementById('summary-present-days').textContent = present;
+      document.getElementById('summary-absent-days').textContent = absent;
+      document.getElementById('summary-late-days').textContent = late;
+    };
+
+    const resetSummaryCards = () => {
+      document.getElementById('summary-present-days').textContent = '0';
+      document.getElementById('summary-absent-days').textContent = '0';
+      document.getElementById('summary-late-days').textContent = '0';
+    };
+
+    // Render visual calendar layout
+    const renderCalendar = () => {
+      const daysGrid = document.getElementById('calendar-days-grid');
+      daysGrid.innerHTML = '';
+
+      // Update calendar month year label
+      document.getElementById('calendar-month-year').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+      // Refresh stats count for this month
+      updateSummaryStats();
+
+      // Calculation of calendar offsets
+      const firstDayIdx = new Date(currentYear, currentMonth, 1).getDay(); // 0 is Sunday
+      const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate(); // last day date
+
+      // 1. Fill leading empty cells (prior month offset)
+      for (let i = 0; i < firstDayIdx; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'calendar-day day-empty';
+        daysGrid.appendChild(emptyCell);
+      }
+
+      // 2. Render actual calendar days
+      for (let day = 1; day <= totalDays; day++) {
+        const dayCell = document.createElement('div');
+        dayCell.className = 'calendar-day';
+        
+        const dayLabel = document.createElement('span');
+        dayLabel.className = 'day-num';
+        dayLabel.textContent = day;
+        dayCell.appendChild(dayLabel);
+
+        // Match attendance records for this date
+        const matchRecord = studentAttendance.find(rec => {
+          const recDate = new Date(rec.date);
+          return recDate.getDate() === day && 
+                 recDate.getMonth() === currentMonth && 
+                 recDate.getFullYear() === currentYear;
+        });
+
+        if (matchRecord) {
+          dayCell.classList.add(`day-${matchRecord.status}`);
+          
+          const statusText = document.createElement('span');
+          statusText.className = 'day-status';
+          statusText.textContent = matchRecord.status;
+          dayCell.appendChild(statusText);
+        } else {
+          // If weekday and has student selected but no record -> no session
+          const weekDay = new Date(currentYear, currentMonth, day).getDay();
+          // Weekends don't have classes by default
+          if (weekDay === 0 || weekDay === 6) {
+            dayCell.classList.add('day-inactive');
+          }
+        }
+
+        daysGrid.appendChild(dayCell);
+      }
+    };
+
+    // Populate bottom detail list table
+    const renderTableRecords = () => {
+      const tbody = document.getElementById('attendance-table-body');
+      tbody.innerHTML = '';
+
+      if (studentAttendance.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-secondary);">No attendance records found for this student.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      studentAttendance.forEach(rec => {
+        // Map course name from courses array
+        const course = courses.find(c => c.id === rec.course_id);
+        const courseName = course ? course.name : `Course #${rec.course_id}`;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="font-weight: 600;">${new Date(rec.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</td>
+          <td>${courseName}</td>
+          <td><span class="badge ${getBadgeClass(rec.status)}">${rec.status}</span></td>
+          <td>
+            <button onclick="triggerDeleteAttendance(${rec.id})" class="btn btn-danger btn-icon" style="padding: 4px 8px; font-size:0.75rem;">Clear</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    };
+
+    const getBadgeClass = (status) => {
+      if (status === 'present') return 'badge-success';
+      if (status === 'late') return 'badge-warning';
+      return 'badge-danger';
+    };
+
+    // Action triggers
+    window.triggerDeleteAttendance = async (id) => {
+      if (confirm("Remove this attendance record permanently?")) {
+        try {
+          await deleteAttendance(id);
+          showToast("Attendance record successfully removed.");
+          await refreshAttendanceData();
+        } catch (err) {
+          showToast("Failed to remove attendance record: " + err.message, "error");
+        }
+      }
+    };
+  </script>
+
+</body>
+</html>

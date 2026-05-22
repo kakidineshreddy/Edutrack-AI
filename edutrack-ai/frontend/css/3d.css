@@ -1,0 +1,141 @@
+/* 3D Animations & Hover Effects System */
+
+/* 1. Base 3D Perspective Properties */
+.perspective-container {
+  perspective: 1000px;
+}
+
+/* 2. 3D Card Hover Rotations */
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+  will-change: transform;
+}
+
+.card-3d:hover {
+  transform: rotateY(8deg) rotateX(4deg) translateY(-8px) scale(1.03);
+  border-color: rgba(0, 212, 255, 0.3) !important;
+}
+
+.card-3d-purple:hover {
+  box-shadow: 0 15px 35px rgba(108, 99, 255, 0.25), 0 0 15px rgba(108, 99, 255, 0.15);
+  border-color: rgba(108, 99, 255, 0.3) !important;
+}
+
+.card-3d-cyan:hover {
+  box-shadow: 0 15px 35px rgba(0, 212, 255, 0.25), 0 0 15px rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.3) !important;
+}
+
+/* Inner elements popping along the Z axis */
+.card-3d-pop {
+  transform: translateZ(50px);
+}
+
+/* 3. Card Flip Mechanics */
+.card-flip {
+  perspective: 1000px;
+  background: transparent;
+  width: 100%;
+  height: 140px;
+}
+
+.card-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.card-flip:hover .card-flip-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.card-front {
+  background: rgba(26, 26, 46, 0.5);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+}
+
+.card-back {
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.2), rgba(0, 212, 255, 0.2));
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  transform: rotateY(180deg);
+}
+
+/* 4. Smooth Floating Animation */
+.floating {
+  animation: floatEffect 4s ease-in-out infinite;
+}
+
+.floating-delayed {
+  animation: floatEffect 4s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+@keyframes floatEffect {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* 5. Shimmer Background Effects */
+.shimmer-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-glow::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 45%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 55%
+  );
+  transform: rotate(45deg);
+  transition: transform 0.5s ease;
+  pointer-events: none;
+}
+
+.shimmer-glow:hover::after {
+  animation: shimmerMove 1.5s infinite;
+}
+
+@keyframes shimmerMove {
+  0% {
+    transform: translate(-30%, -30%) rotate(45deg);
+  }
+  100% {
+    transform: translate(30%, 30%) rotate(45deg);
+  }
+}

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EduTrack AI Grade Management - Add, edit, delete, and evaluate student academic grades.">
+  <title>Grades - EduTrack AI</title>
+  
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/3d.css">
+  
+  <style>
+    /* Custom Row Color Highlights */
+    .row-green {
+      background: rgba(0, 214, 143, 0.08) !important;
+      border-left: 3px solid var(--success);
+    }
+    .row-yellow {
+      background: rgba(255, 170, 0, 0.08) !important;
+      border-left: 3px solid var(--warning);
+    }
+    .row-red {
+      background: rgba(255, 77, 109, 0.08) !important;
+      border-left: 3px solid var(--danger);
+    }
+    
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+      align-items: flex-end;
+    }
+    
+    .filter-group {
+      flex: 1;
+      min-width: 180px;
+    }
+    
+    .pagination-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .page-controls {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .page-indicator {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+    
+    .table-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-icon {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background canvas -->
+  <canvas id="bg"></canvas>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar-nav">
+      <div class="sidebar-logo">EduTrack AI</div>
+      <ul class="sidebar-menu">
+        <li class="menu-item">
+          <a href="dashboard.html">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="menu-item active">
+          <a href="grades.html">
+            <span class="icon">📝</span>
+            <span>Grades</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="attendance.html">
+            <span class="icon">📅</span>
+            <span>Attendance</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="admin.html">
+            <span class="icon">⚙️</span>
+            <span>Admin Panel</span>
+          </a>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <div class="logout-btn" id="logout-sidebar-btn">
+          <span class="icon">🔓</span>
+          <span>Logout</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <button class="mobile-nav-toggle" id="mobile-toggle" aria-label="Toggle Navigation">☰</button>
+
+      <!-- Header -->
+      <header class="header-bar">
+        <div class="header-title">
+          <h1>Grade Management</h1>
+          <p>MANAGE AND TRACK STUDENT MARKS</p>
+        </div>
+        <div class="header-profile">
+          <button class="btn btn-primary" id="open-add-grade-modal-btn">+ Add Grade</button>
+        </div>
+      </header>
+
+      <!-- Filter Controls Bar -->
+      <div class="glass-card filter-bar">
+        <div class="filter-group">
+          <label for="filter-student">Search Student</label>
+          <input type="text" id="filter-student" class="form-control" placeholder="Search by name...">
+        </div>
+        <div class="filter-group">
+          <label for="filter-course">Course</label>
+          <select id="filter-course" class="form-control">
+            <option value="">All Courses</option>
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-grade-level">Grade Level</label>
+          <select id="filter-grade-level" class="form-control">
+            <option value="">All Levels</option>
+            <option value="Grade 10">Grade 10</option>
+            <option value="Grade 11">Grade 11</option>
+            <option value="Grade 12">Grade 12</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" id="clear-filters-btn" style="height: 45px;">Reset</button>
+      </div>
+
+      <!-- Grades Data Card -->
+      <div class="glass-card card-3d">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Score</th>
+                <th>Letter Grade</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="grades-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-secondary);">Querying academic databases...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-bar">
+          <div class="page-indicator" id="pagination-indicator">Showing 0-0 of 0 grades</div>
+          <div class="page-controls">
+            <button class="btn btn-secondary btn-icon" id="prev-page-btn" disabled>Prev</button>
+            <button class="btn btn-secondary btn-icon" id="next-page-btn" disabled>Next</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Grade Modal Overlay -->
+  <div class="modal-overlay" id="grade-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title">Add Student Grade</h3>
+        <button class="modal-close" id="close-modal-btn">×</button>
+      </div>
+      
+      <form id="grade-form">
+        <input type="hidden" id="grade-id-input">
+        
+        <div class="form-group">
+          <label for="modal-student-select">Select Student</label>
+          <select id="modal-student-select" class="form-control" required>
+            <option value="">-- Choose Student --</option>
+            <!-- Loaded dynamically -->
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="modal-course-select">Select Course</label>
+          <select id="modal-course-select" class="form-control" required>
+            <option value="">-- Choose Course --</option>
+            <!-- Loaded dynamically -->
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="modal-score-input">Exam Score (0 - 100)</label>
+          <input type="number" id="modal-score-input" class="form-control" min="0" max="100" step="0.5" placeholder="85.5" required>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" id="cancel-modal-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="save-modal-btn">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Overlay -->
+  <div class="toast-container" id="toast-overlay"></div>
+
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/three-bg.js"></script>
+
+  <!-- Network client & Auth helper -->
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+
+  <script>
+    checkAuth();
+
+    // Toast emitter
+    const showToast = (message, type = 'success') => {
+      const overlay = document.getElementById('toast-overlay');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      overlay.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s reverse forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    };
+
+    // State parameters
+    let allGrades = [];
+    let filteredGrades = [];
+    let students = [];
+    let courses = [];
+    
+    let currentPage = 1;
+    const rowsPerPage = 10;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Sidebar logout action
+      document.getElementById('logout-sidebar-btn').addEventListener('click', () => logoutUser());
+
+      // 2. Mobile nav burger toggle
+      const mobileToggle = document.getElementById('mobile-toggle');
+      const sidebar = document.getElementById('sidebar-nav');
+      mobileToggle.addEventListener('click', () => sidebar.classList.toggle('active'));
+
+      // 3. Load core entities & tables
+      await loadFiltersAndSelectors();
+      await fetchGradesList();
+
+      // 4. Set up live search events
+      document.getElementById('filter-student').addEventListener('input', applyFilters);
+      document.getElementById('filter-course').addEventListener('change', applyFilters);
+      document.getElementById('filter-grade-level').addEventListener('change', applyFilters);
+      document.getElementById('clear-filters-btn').addEventListener('click', resetFilters);
+
+      // 5. Pagination clicks
+      document.getElementById('prev-page-btn').addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderGradesTable();
+        }
+      });
+      document.getElementById('next-page-btn').addEventListener('click', () => {
+        const maxPage = Math.ceil(filteredGrades.length / rowsPerPage);
+        if (currentPage < maxPage) {
+          currentPage++;
+          renderGradesTable();
+        }
+      });
+
+      // 6. Modal triggers
+      const modal = document.getElementById('grade-modal');
+      const addBtn = document.getElementById('open-add-grade-modal-btn');
+      const closeBtn = document.getElementById('close-modal-btn');
+      const cancelBtn = document.getElementById('cancel-modal-btn');
+      
+      const openModal = (title = "Add Student Grade", gradeId = "") => {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('grade-id-input').value = gradeId;
+        
+        if (!gradeId) {
+          document.getElementById('grade-form').reset();
+        }
+        
+        modal.classList.add('active');
+      };
+      
+      const closeModal = () => {
+        modal.classList.remove('active');
+      };
+
+      addBtn.addEventListener('click', () => openModal());
+      closeBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+
+      // 7. Form Submission Handler (Save or Update)
+      document.getElementById('grade-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const id = document.getElementById('grade-id-input').value;
+        const studentId = parseInt(document.getElementById('modal-student-select').value);
+        const courseId = parseInt(document.getElementById('modal-course-select').value);
+        const score = parseFloat(document.getElementById('modal-score-input').value);
+        
+        const payload = { student_id: studentId, course_id: courseId, score: score };
+        
+        try {
+          if (id) {
+            // Update
+            await updateGrade(id, payload);
+            showToast("Grade record updated successfully.");
+          } else {
+            // Create
+            await createGrade(payload);
+            showToast("Grade record created successfully.");
+          }
+          closeModal();
+          await fetchGradesList();
+        } catch (err) {
+          showToast("Failed to save grade data: " + err.message, "error");
+        }
+      });
+    });
+
+    // Populate Courses dropdown and Modal selectors
+    const loadFiltersAndSelectors = async () => {
+      try {
+        students = await getStudents();
+        courses = await getCourses();
+
+        // 1. Set Filter options
+        const filterCourse = document.getElementById('filter-course');
+        courses.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.name;
+          opt.textContent = c.name;
+          filterCourse.appendChild(opt);
+        });
+
+        // 2. Set Modal Student select dropdown
+        const modalStudent = document.getElementById('modal-student-select');
+        students.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = `${s.name} (${s.grade_level})`;
+          modalStudent.appendChild(opt);
+        });
+
+        // 3. Set Modal Course select dropdown
+        const modalCourse = document.getElementById('modal-course-select');
+        courses.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.name;
+          modalCourse.appendChild(opt);
+        });
+      } catch (err) {
+        showToast("Error loading selectors: " + err.message, "error");
+      }
+    };
+
+    // Pull grades database
+    const fetchGradesList = async () => {
+      try {
+        allGrades = await getGrades();
+        filteredGrades = [...allGrades];
+        currentPage = 1;
+        renderGradesTable();
+      } catch (err) {
+        showToast("Error retrieving grades data: " + err.message, "error");
+      }
+    };
+
+    // Render table
+    const renderGradesTable = () => {
+      const tableBody = document.getElementById('grades-table-body');
+      tableBody.innerHTML = '';
+
+      if (filteredGrades.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-secondary);">No matching grade records found.</td>
+          </tr>
+        `;
+        document.getElementById('pagination-indicator').textContent = 'Showing 0-0 of 0 grades';
+        document.getElementById('prev-page-btn').disabled = true;
+        document.getElementById('next-page-btn').disabled = true;
+        return;
+      }
+
+      // Pagination math
+      const startIndex = (currentPage - 1) * rowsPerPage;
+      const endIndex = Math.min(startIndex + rowsPerPage, filteredGrades.length);
+      const paginatedItems = filteredGrades.slice(startIndex, endIndex);
+
+      paginatedItems.forEach(grade => {
+        const studentName = grade.student ? grade.student.name : `Student #${grade.student_id}`;
+        const studentLevel = grade.student ? grade.student.grade_level : '';
+        const courseName = grade.course ? grade.course.name : `Course #${grade.course_id}`;
+        
+        const row = document.createElement('tr');
+        
+        // Highlight row based on letter grade
+        if (['A', 'B'].includes(grade.letter_grade)) {
+          row.className = 'row-green';
+        } else if (grade.letter_grade === 'C') {
+          row.className = 'row-yellow';
+        } else if (['D', 'F'].includes(grade.letter_grade)) {
+          row.className = 'row-red';
+        }
+
+        row.innerHTML = `
+          <td>
+            <div style="font-weight: 600;">${studentName}</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">${studentLevel}</div>
+          </td>
+          <td>${courseName}</td>
+          <td style="font-weight: 700;">${grade.score.toFixed(1)}%</td>
+          <td><span class="badge ${getBadgeClass(grade.letter_grade)}">${grade.letter_grade}</span></td>
+          <td>${new Date(grade.date).toLocaleDateString()}</td>
+          <td>
+            <div class="table-actions">
+              <button onclick="triggerEditGrade(${grade.id})" class="btn btn-secondary btn-icon">Edit</button>
+              <button onclick="triggerDeleteGrade(${grade.id})" class="btn btn-danger btn-icon">Delete</button>
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Update Pagination controls
+      document.getElementById('pagination-indicator').textContent = `Showing ${startIndex + 1}-${endIndex} of ${filteredGrades.length} grades`;
+      document.getElementById('prev-page-btn').disabled = currentPage === 1;
+      document.getElementById('next-page-btn').disabled = endIndex >= filteredGrades.length;
+    };
+
+    const getBadgeClass = (letter) => {
+      if (['A', 'B'].includes(letter)) return 'badge-success';
+      if (letter === 'C') return 'badge-warning';
+      return 'badge-danger';
+    };
+
+    // Apply filter bars
+    const applyFilters = () => {
+      const studentQuery = document.getElementById('filter-student').value.toLowerCase().trim();
+      const courseQuery = document.getElementById('filter-course').value;
+      const levelQuery = document.getElementById('filter-grade-level').value;
+
+      filteredGrades = allGrades.filter(grade => {
+        const studentName = grade.student ? grade.student.name.toLowerCase() : '';
+        const gradeCourse = grade.course ? grade.course.name : '';
+        const studentLevel = grade.student ? grade.student.grade_level : '';
+
+        const matchesStudent = studentName.includes(studentQuery);
+        const matchesCourse = !courseQuery || gradeCourse === courseQuery;
+        const matchesLevel = !levelQuery || studentLevel === levelQuery;
+
+        return matchesStudent && matchesCourse && matchesLevel;
+      });
+
+      currentPage = 1;
+      renderGradesTable();
+    };
+
+    const resetFilters = () => {
+      document.getElementById('filter-student').value = '';
+      document.getElementById('filter-course').value = '';
+      document.getElementById('filter-grade-level').value = '';
+      filteredGrades = [...allGrades];
+      currentPage = 1;
+      renderGradesTable();
+    };
+
+    // Global triggers for Actions column
+    window.triggerEditGrade = async (id) => {
+      try {
+        const grade = await getGrade(id);
+        if (grade) {
+          document.getElementById('modal-student-select').value = grade.student_id;
+          document.getElementById('modal-course-select').value = grade.course_id;
+          document.getElementById('modal-score-input').value = grade.score;
+          
+          // Open Modal
+          const modal = document.getElementById('grade-modal');
+          document.getElementById('modal-title').textContent = "Edit Student Grade";
+          document.getElementById('grade-id-input').value = grade.id;
+          modal.classList.add('active');
+        }
+      } catch (err) {
+        showToast("Error fetching grade record: " + err.message, "error");
+      }
+    };
+
+    window.triggerDeleteGrade = async (id) => {
+      if (confirm("Are you sure you want to permanently delete this grade record?")) {
+        try {
+          await deleteGrade(id);
+          showToast("Grade record deleted successfully.");
+          await fetchGradesList();
+        } catch (err) {
+          showToast("Failed to delete record: " + err.message, "error");
+        }
+      }
+    };
+  </script>
+
+</body>
+</html>

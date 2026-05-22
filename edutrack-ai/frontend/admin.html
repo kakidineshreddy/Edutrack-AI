@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EduTrack AI Admin Control - Registry, directories, and systems access management.">
+  <title>Admin Panel - EduTrack AI</title>
+  
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/3d.css">
+  
+  <style>
+    /* Tab System Layout */
+    .tab-bar {
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 30px;
+    }
+    
+    .tab-item {
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .tab-item:hover, .tab-item.active {
+      color: var(--accent-cyan);
+      border-bottom-color: var(--accent-cyan);
+    }
+
+    .admin-tab-content {
+      display: none;
+    }
+
+    .admin-tab-content.active {
+      display: block;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background canvas -->
+  <canvas id="bg"></canvas>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar-nav">
+      <div class="sidebar-logo">EduTrack AI</div>
+      <ul class="sidebar-menu">
+        <li class="menu-item">
+          <a href="dashboard.html">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="grades.html">
+            <span class="icon">📝</span>
+            <span>Grades</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="attendance.html">
+            <span class="icon">📅</span>
+            <span>Attendance</span>
+          </a>
+        </li>
+        <li class="menu-item active">
+          <a href="admin.html">
+            <span class="icon">⚙️</span>
+            <span>Admin Panel</span>
+          </a>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <div class="logout-btn" id="logout-sidebar-btn">
+          <span class="icon">🔓</span>
+          <span>Logout</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <button class="mobile-nav-toggle" id="mobile-toggle" aria-label="Toggle Navigation">☰</button>
+
+      <!-- Header Section -->
+      <header class="header-bar">
+        <div class="header-title">
+          <h1>Admin Panel</h1>
+          <p>SYSTEM DIRECTORIES AND REGISTER CONTROLLER</p>
+        </div>
+        <div class="header-profile" id="action-btn-placeholder">
+          <!-- Button swaps dynamically based on active tab -->
+          <button class="btn btn-primary" id="add-student-trigger-btn">+ Add Student</button>
+        </div>
+      </header>
+
+      <!-- Tab Layout Controls -->
+      <div class="tab-bar">
+        <div class="tab-item active" data-tab="students-tab" id="students-tab-indicator">Students</div>
+        <div class="tab-item" data-tab="teachers-tab" id="teachers-tab-indicator">Teachers</div>
+        <div class="tab-item" data-tab="courses-tab" id="courses-tab-indicator">Courses</div>
+      </div>
+
+      <!-- ================== TABS CONTENT ================== -->
+
+      <!-- 1. Students Tab -->
+      <div class="admin-tab-content active" id="students-tab">
+        <div class="glass-card card-3d">
+          <h3>Student Registry Directory</h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Grade Level</th>
+                  <th>Created At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="students-table-body">
+                <tr>
+                  <td colspan="6" style="text-align: center; color: var(--text-secondary);">Querying students database...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Teachers Tab -->
+      <div class="admin-tab-content" id="teachers-tab">
+        <div class="glass-card card-3d">
+          <h3>Teacher Registry Directory</h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Subject Department</th>
+                  <th>Registered Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="teachers-table-body">
+                <tr>
+                  <td colspan="6" style="text-align: center; color: var(--text-secondary);">Querying teachers database...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Courses Tab -->
+      <div class="admin-tab-content" id="courses-tab">
+        <div class="glass-card card-3d">
+          <h3>Course Registry Directory</h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Course Title</th>
+                  <th>Assigned Teacher</th>
+                  <th>Credits</th>
+                  <th>Schedule Day/Time</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="courses-table-body">
+                <tr>
+                  <td colspan="6" style="text-align: center; color: var(--text-secondary);">Querying course directories...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ================== MODALS SECTION ================== -->
+
+  <!-- 1. Student Modal -->
+  <div class="modal-overlay" id="student-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="student-modal-title">Register Student</h3>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <form id="student-form">
+        <input type="hidden" id="student-id-input">
+        <div class="form-group">
+          <label for="student-name-input">Full Name</label>
+          <input type="text" id="student-name-input" class="form-control" placeholder="Arjun Sharma" required>
+        </div>
+        <div class="form-group">
+          <label for="student-email-input">Email Address</label>
+          <input type="email" id="student-email-input" class="form-control" placeholder="arjun@edutrack.com" required>
+        </div>
+        <div class="form-group">
+          <label for="student-level-input">Grade Level</label>
+          <select id="student-level-input" class="form-control" required>
+            <option value="">-- Choose Level --</option>
+            <option value="Grade 10">Grade 10</option>
+            <option value="Grade 11">Grade 11</option>
+            <option value="Grade 12">Grade 12</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" onclick="closeAllModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Registry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Teacher Modal -->
+  <div class="modal-overlay" id="teacher-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="teacher-modal-title">Register Teacher</h3>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <form id="teacher-form">
+        <input type="hidden" id="teacher-id-input">
+        <div class="form-group">
+          <label for="teacher-name-input">Full Name</label>
+          <input type="text" id="teacher-name-input" class="form-control" placeholder="Mr. Ramesh" required>
+        </div>
+        <div class="form-group">
+          <label for="teacher-email-input">Email Address</label>
+          <input type="email" id="teacher-email-input" class="form-control" placeholder="ramesh@edutrack.com" required>
+        </div>
+        <div class="form-group">
+          <label for="teacher-subject-input">Subject Department</label>
+          <input type="text" id="teacher-subject-input" class="form-control" placeholder="Mathematics" required>
+        </div>
+        <div class="form-group" id="teacher-password-group">
+          <label for="teacher-password-input">Account Password</label>
+          <input type="password" id="teacher-password-input" class="form-control" placeholder="Teacher123!" required>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" onclick="closeAllModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Registry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Course Modal -->
+  <div class="modal-overlay" id="course-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="course-modal-title">Create Course</h3>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <form id="course-form">
+        <input type="hidden" id="course-id-input">
+        <div class="form-group">
+          <label for="course-name-input">Course Title</label>
+          <input type="text" id="course-name-input" class="form-control" placeholder="Physics 101" required>
+        </div>
+        <div class="form-group">
+          <label for="course-teacher-select">Assigned Teacher</label>
+          <select id="course-teacher-select" class="form-control" required>
+            <option value="">-- Choose Instructor --</option>
+            <!-- Loaded dynamically -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="course-credits-input">Credits</label>
+          <input type="number" id="course-credits-input" class="form-control" min="1" max="5" value="3" required>
+        </div>
+        <div class="form-group">
+          <label for="course-schedule-input">Schedule Day & Time</label>
+          <input type="text" id="course-schedule-input" class="form-control" placeholder="Mon/Wed 10:30 AM" required>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" onclick="closeAllModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Registry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Overlay -->
+  <div class="toast-container" id="toast-overlay"></div>
+
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/three-bg.js"></script>
+
+  <!-- Network client & Auth helper -->
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+
+  <script>
+    checkAuth();
+
+    // Toast emitter
+    const showToast = (message, type = 'success') => {
+      const overlay = document.getElementById('toast-overlay');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      overlay.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s reverse forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    };
+
+    // State vectors
+    let students = [];
+    let teachers = [];
+    let courses = [];
+    let currentTab = 'students-tab';
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Sidebar logout action
+      document.getElementById('logout-sidebar-btn').addEventListener('click', () => logoutUserUser || logoutUser());
+
+      // 2. Mobile nav burger toggle
+      const mobileToggle = document.getElementById('mobile-toggle');
+      const sidebar = document.getElementById('sidebar-nav');
+      mobileToggle.addEventListener('click', () => sidebar.classList.toggle('active'));
+
+      // 3. Tab switching event loop
+      document.querySelectorAll('.tab-item').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          const selected = e.target.getAttribute('data-tab');
+          switchTab(selected);
+        });
+      });
+
+      // 4. Initial seed loads
+      await fetchAllDirectories();
+
+      // 5. Setup header action triggers
+      const actionPlaceholder = document.getElementById('action-btn-placeholder');
+      
+      const setupHeaderButton = () => {
+        actionPlaceholder.innerHTML = '';
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-primary';
+        
+        if (currentTab === 'students-tab') {
+          btn.textContent = '+ Add Student';
+          btn.onclick = () => openStudentModal();
+        } else if (currentTab === 'teachers-tab') {
+          btn.textContent = '+ Add Teacher';
+          btn.onclick = () => openTeacherModal();
+        } else {
+          btn.textContent = '+ Add Course';
+          btn.onclick = () => openCourseModal();
+        }
+        
+        actionPlaceholder.appendChild(btn);
+      };
+
+      // Expose to globally draw buttons
+      window.setupHeaderButton = setupHeaderButton;
+      setupHeaderButton();
+
+      // 6. Register Form submissions
+      document.getElementById('student-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('student-id-input').value;
+        const payload = {
+          name: document.getElementById('student-name-input').value.trim(),
+          email: document.getElementById('student-email-input').value.trim(),
+          grade_level: document.getElementById('student-level-input').value
+        };
+        
+        try {
+          if (id) {
+            await updateStudent(id, payload);
+            showToast("Student data successfully updated.");
+          } else {
+            await createStudent(payload);
+            showToast("Student successfully enrolled in database.");
+          }
+          closeAllModals();
+          await fetchStudentsDirectory();
+        } catch (err) {
+          showToast("Failed to process student registry: " + err.message, "error");
+        }
+      });
+
+      document.getElementById('teacher-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('teacher-id-input').value;
+        const payload = {
+          name: document.getElementById('teacher-name-input').value.trim(),
+          email: document.getElementById('teacher-email-input').value.trim(),
+          subject: document.getElementById('teacher-subject-input').value.trim(),
+          password: document.getElementById('teacher-password-input').value
+        };
+        
+        try {
+          if (id) {
+            // Delete password from payload if not modified
+            if (!payload.password) delete payload.password;
+            await updateTeacher(id, payload);
+            showToast("Teacher record updated successfully.");
+          } else {
+            if (!payload.password) {
+              showToast("Password required for new teachers.", "error");
+              return;
+            }
+            await createTeacher(payload);
+            showToast("Teacher successfully enrolled in system.");
+          }
+          closeAllModals();
+          await fetchTeachersDirectory();
+        } catch (err) {
+          showToast("Failed to process teacher registry: " + err.message, "error");
+        }
+      });
+
+      document.getElementById('course-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('course-id-input').value;
+        const payload = {
+          name: document.getElementById('course-name-input').value.trim(),
+          teacher_id: parseInt(document.getElementById('course-teacher-select').value) || null,
+          credits: parseInt(document.getElementById('course-credits-input').value),
+          schedule: document.getElementById('course-schedule-input').value.trim()
+        };
+        
+        try {
+          if (id) {
+            await updateCourse(id, payload);
+            showToast("Course curriculum updated successfully.");
+          } else {
+            await createCourse(payload);
+            showToast("Course successfully added to registry.");
+          }
+          closeAllModals();
+          await fetchCoursesDirectory();
+        } catch (err) {
+          showToast("Failed to write course registry: " + err.message, "error");
+        }
+      });
+    });
+
+    // Swaps visual tabs
+    const switchTab = (tabId) => {
+      currentTab = tabId;
+      
+      // Update UI classes
+      document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.admin-tab-content').forEach(cont => cont.classList.remove('active'));
+      
+      const matchedTab = document.querySelector(`[data-tab="${tabId}"]`);
+      if (matchedTab) matchedTab.classList.add('active');
+      
+      const targetDiv = document.getElementById(tabId);
+      if (targetDiv) targetDiv.classList.add('active');
+      
+      window.setupHeaderButton();
+    };
+
+    // Load data from API
+    const fetchAllDirectories = async () => {
+      await fetchStudentsDirectory();
+      await fetchTeachersDirectory();
+      await fetchCoursesDirectory();
+    };
+
+    const fetchStudentsDirectory = async () => {
+      try {
+        students = await getStudents();
+        renderStudentsTable();
+      } catch (err) {
+        showToast("Error loading students: " + err.message, "error");
+      }
+    };
+
+    const fetchTeachersDirectory = async () => {
+      try {
+        teachers = await getTeachers();
+        renderTeachersTable();
+        populateTeacherSelect();
+      } catch (err) {
+        showToast("Error loading teachers: " + err.message, "error");
+      }
+    };
+
+    const fetchCoursesDirectory = async () => {
+      try {
+        courses = await getCourses();
+        renderCoursesTable();
+      } catch (err) {
+        showToast("Error loading courses: " + err.message, "error");
+      }
+    };
+
+    // Populate Course Instructor Selector
+    const populateTeacherSelect = () => {
+      const select = document.getElementById('course-teacher-select');
+      // Reset
+      select.innerHTML = '<option value="">-- Choose Instructor --</option>';
+      teachers.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = `${t.name} (${t.subject})`;
+        select.appendChild(opt);
+      });
+    };
+
+    // Render Student Table Rows
+    const renderStudentsTable = () => {
+      const tbody = document.getElementById('students-table-body');
+      tbody.innerHTML = '';
+      if (students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No student records found.</td></tr>';
+        return;
+      }
+      students.forEach(s => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>#${s.id}</td>
+          <td style="font-weight: 600;">${s.name}</td>
+          <td>${s.email}</td>
+          <td><span class="badge badge-secondary">${s.grade_level}</span></td>
+          <td>${new Date(s.created_at).toLocaleDateString()}</td>
+          <td>
+            <div class="table-actions">
+              <button onclick="triggerEditStudent(${s.id})" class="btn btn-secondary btn-icon">Edit</button>
+              <button onclick="triggerDeleteStudent(${s.id})" class="btn btn-danger btn-icon">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    };
+
+    // Render Teacher Table Rows
+    const renderTeachersTable = () => {
+      const tbody = document.getElementById('teachers-table-body');
+      tbody.innerHTML = '';
+      if (teachers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No teacher records found.</td></tr>';
+        return;
+      }
+      teachers.forEach(t => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>#${t.id}</td>
+          <td style="font-weight: 600;">${t.name}</td>
+          <td>${t.email}</td>
+          <td><span class="badge badge-success">${t.subject}</span></td>
+          <td>${new Date(t.created_at).toLocaleDateString()}</td>
+          <td>
+            <div class="table-actions">
+              <button onclick="triggerEditTeacher(${t.id})" class="btn btn-secondary btn-icon">Edit</button>
+              <button onclick="triggerDeleteTeacher(${t.id})" class="btn btn-danger btn-icon">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    };
+
+    // Render Courses Table Rows
+    const renderCoursesTable = () => {
+      const tbody = document.getElementById('courses-table-body');
+      tbody.innerHTML = '';
+      if (courses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No course records found.</td></tr>';
+        return;
+      }
+      courses.forEach(c => {
+        // Match teacher name
+        const teacherObj = teachers.find(t => t.id === c.teacher_id);
+        const instructor = teacherObj ? teacherObj.name : 'Unassigned';
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>#${c.id}</td>
+          <td style="font-weight: 600;">${c.name}</td>
+          <td>${instructor}</td>
+          <td><span class="badge badge-warning">${c.credits} Credits</span></td>
+          <td>${c.schedule}</td>
+          <td>
+            <div class="table-actions">
+              <button onclick="triggerEditCourse(${c.id})" class="btn btn-secondary btn-icon">Edit</button>
+              <button onclick="triggerDeleteCourse(${c.id})" class="btn btn-danger btn-icon">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    };
+
+    // Modal Control Functions
+    const closeAllModals = () => {
+      document.getElementById('student-modal').classList.remove('active');
+      document.getElementById('teacher-modal').classList.remove('active');
+      document.getElementById('course-modal').classList.remove('active');
+    };
+
+    const openStudentModal = (title = "Register Student", studentId = "") => {
+      closeAllModals();
+      document.getElementById('student-modal-title').textContent = title;
+      document.getElementById('student-id-input').value = studentId;
+      if (!studentId) {
+        document.getElementById('student-form').reset();
+      }
+      document.getElementById('student-modal').classList.add('active');
+    };
+
+    const openTeacherModal = (title = "Register Teacher", teacherId = "") => {
+      closeAllModals();
+      document.getElementById('teacher-modal-title').textContent = title;
+      document.getElementById('teacher-id-input').value = teacherId;
+      
+      const pwdGroup = document.getElementById('teacher-password-group');
+      const pwdInput = document.getElementById('teacher-password-input');
+      
+      if (teacherId) {
+        // Edit mode - password is optional
+        pwdInput.required = false;
+        pwdInput.placeholder = "Leave blank to keep current password";
+      } else {
+        // Add mode
+        document.getElementById('teacher-form').reset();
+        pwdInput.required = true;
+        pwdInput.placeholder = "••••••••";
+      }
+      document.getElementById('teacher-modal').classList.add('active');
+    };
+
+    const openCourseModal = (title = "Create Course", courseId = "") => {
+      closeAllModals();
+      document.getElementById('course-modal-title').textContent = title;
+      document.getElementById('course-id-input').value = courseId;
+      if (!courseId) {
+        document.getElementById('course-form').reset();
+      }
+      document.getElementById('course-modal').classList.add('active');
+    };
+
+    // Actions Triggers
+    window.triggerEditStudent = async (id) => {
+      try {
+        const student = await getStudent(id);
+        if (student) {
+          document.getElementById('student-name-input').value = student.name;
+          document.getElementById('student-email-input').value = student.email;
+          document.getElementById('student-level-input').value = student.grade_level;
+          openStudentModal("Edit Student Details", student.id);
+        }
+      } catch (err) {
+        showToast("Error retrieving student details: " + err.message, "error");
+      }
+    };
+
+    window.triggerDeleteStudent = async (id) => {
+      if (confirm("Are you sure you want to permanently delete this student record? This clears all grades and attendance metrics.")) {
+        try {
+          await deleteStudent(id);
+          showToast("Student deleted successfully.");
+          await fetchStudentsDirectory();
+        } catch (err) {
+          showToast("Failed to delete student: " + err.message, "error");
+        }
+      }
+    };
+
+    window.triggerEditTeacher = async (id) => {
+      try {
+        const teacher = await getTeacher(id);
+        if (teacher) {
+          document.getElementById('teacher-name-input').value = teacher.name;
+          document.getElementById('teacher-email-input').value = teacher.email;
+          document.getElementById('teacher-subject-input').value = teacher.subject;
+          document.getElementById('teacher-password-input').value = ''; // clear password input field
+          openTeacherModal("Edit Teacher Details", teacher.id);
+        }
+      } catch (err) {
+        showToast("Error retrieving teacher details: " + err.message, "error");
+      }
+    };
+
+    window.triggerDeleteTeacher = async (id) => {
+      if (confirm("Are you sure you want to permanently delete this teacher record?")) {
+        try {
+          await deleteTeacher(id);
+          showToast("Teacher deleted successfully.");
+          await fetchTeachersDirectory();
+        } catch (err) {
+          showToast("Failed to delete teacher: " + err.message, "error");
+        }
+      }
+    };
+
+    window.triggerEditCourse = async (id) => {
+      try {
+        const course = await getCourse(id);
+        if (course) {
+          document.getElementById('course-name-input').value = course.name;
+          document.getElementById('course-teacher-select').value = course.teacher_id || "";
+          document.getElementById('course-credits-input').value = course.credits;
+          document.getElementById('course-schedule-input').value = course.schedule;
+          openCourseModal("Edit Course Details", course.id);
+        }
+      } catch (err) {
+        showToast("Error retrieving course details: " + err.message, "error");
+      }
+    };
+
+    window.triggerDeleteCourse = async (id) => {
+      if (confirm("Are you sure you want to permanently delete this course? This removes all associated student performance grades.")) {
+        try {
+          await deleteCourse(id);
+          showToast("Course deleted successfully.");
+          await fetchCoursesDirectory();
+        } catch (err) {
+          showToast("Failed to delete course: " + err.message, "error");
+        }
+      }
+    };
+  </script>
+
+</body>
+</html>

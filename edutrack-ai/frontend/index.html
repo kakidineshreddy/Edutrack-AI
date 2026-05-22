@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EduTrack AI - Intelligent Student Performance Tracking platform leveraging local ML grade forecasting and 3D visual analytics dashboards.">
+  <title>EduTrack AI - Next Gen Performance Analytics</title>
+  
+  <!-- CSS files -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/3d.css">
+
+  <style>
+    /* Unique Landing Page Styling */
+    .landing-wrapper {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      padding: 24px;
+    }
+
+    .hero-card {
+      max-width: 620px;
+      text-align: center;
+      padding: 56px 40px;
+      background: rgba(26, 26, 46, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.02);
+    }
+
+    .landing-title {
+      font-size: 4rem;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff, #6c63ff, #00d4ff, #ffffff);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientShift 6s ease infinite;
+    }
+
+    .landing-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.25rem;
+      font-weight: 400;
+      line-height: 1.6;
+      margin-bottom: 40px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .cta-buttons .btn {
+      min-width: 160px;
+    }
+
+    /* Keyframes for large heading gradient shift */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @media (max-width: 580px) {
+      .landing-title {
+        font-size: 2.8rem;
+      }
+      .landing-subtitle {
+        font-size: 1.05rem;
+      }
+      .hero-card {
+        padding: 40px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Three.js Background Canvas -->
+  <canvas id="bg"></canvas>
+
+  <!-- Hero Content Wrap -->
+  <div class="landing-wrapper">
+    <div class="glass-card hero-card floating card-3d card-3d-cyan" id="landing-hero-card">
+      <div class="card-3d-pop">
+        <h1 class="landing-title" id="main-title">EduTrack AI</h1>
+        <p class="landing-subtitle" id="main-subtitle">
+          Intelligent Student Performance Tracking platform. Seamless dashboards, local ML academic forecasting, and detailed study guidelines.
+        </p>
+        <div class="cta-buttons">
+          <a href="login.html" class="btn btn-primary" id="cta-login-btn">Get Started</a>
+          <button onclick="alert('EduTrack AI is a full-featured tracking suite. Log in with your admin credentials to manage students, visualize course curves, monitor attendance calendars, and retrieve AI study recommendations.')" class="btn btn-secondary" id="cta-learn-btn">Learn More</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CDN Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Background Generator Script -->
+  <script src="js/three-bg.js"></script>
+
+</body>
+</html>
